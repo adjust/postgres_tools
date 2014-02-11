@@ -1,0 +1,41 @@
+{
+   "abstract" : "Backup and Restore scripts for PostgreSQL",
+   "author" : [
+      "Robert Abraham <roa@adeven.com>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921",
+   "license" : [
+      "mit"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "PostgresTools",
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "Module::Build" : "0.38"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "DBD::Pg" : "0",
+            "DateTime" : "0",
+            "DateTime::Format::Strptime" : "0",
+            "File::Path" : "0",
+            "Getopt::Long" : "0",
+            "Moo" : "0",
+            "Parallel::ForkManager" : "0"
+         }
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "license" : [
+         "http://opensource.org/licenses/mit-license.php"
+      ]
+   },
+   "version" : "0"
+}
