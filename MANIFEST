@@ -1,0 +1,8 @@
+bin/dump.pl
+Build.PL
+lib/PostgresTools.pm
+lib/PostgresTools/Database.pm
+lib/PostgresTools/Date.pm
+LICENSE
+MANIFEST			This list of files
+README.md
