@@ -52,12 +52,9 @@ sub BUILD {
 sub dump {
     my $self = shift;
     $self->_make_base;
-
-    #$self->_dump_partitions;
-
+    $self->_dump_partitions;
     $self->_dump_tables;
-
-    #$self->_dump_sequences;
+    $self->_dump_sequences;
 }
 
 sub restore {

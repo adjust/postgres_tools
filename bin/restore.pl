@@ -35,9 +35,9 @@ GetOptions(
 unless ( defined($db) ) {
     say "usage: $PROGNAME --host <host> --user <user> --db <db> -p\n";
     say "\thost|h => PostgreSQL host to connect to ( default: \'localhost\' )";
-    say "\tuser|U => PostgreSQL user to use for connection ( default:               \'postgres\' )";
+    say "\tuser|U => PostgreSQL user to use for connection ( default: \'postgres\' )";
     say "\tdb     => PostgreSQL database to connect to ( required )";
-    say "\tpretend|p => boolean, if set only prin commands";
+    say "\tpretend|p => boolean, if set only print commands";
     exit(1);
 }
 
@@ -49,7 +49,6 @@ my $tools = PostgresTools->new(
     verbose  => $verbose,
     forks    => $jobs,
     progress => $progress,
-    exclude  => [ 'sessions', 'subsessions', 'events', 'clicks' ],
 );
 
 $tools->restore;
