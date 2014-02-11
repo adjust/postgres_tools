@@ -1,4 +1,5 @@
 bin/dump.pl
+bin/restore.pl
 Build.PL
 lib/PostgresTools.pm
 lib/PostgresTools/Database.pm

@@ -15,29 +15,29 @@ our $PROGNAME = basename($0);
 my $host = 'localhost';
 my $user = 'postgres';
 my $db;
-my $pretend  = 0;
-my $verbose  = 0;
-my $progress = 0;
-my $jobs     = 1;
-my $offset   = 35;
+my $pretend = 0;
+my $verbose = 0;
+my $progress;
+my $jobs = 1;
+my $date_string;
 
 GetOptions(
-    "host|h=s"   => \$host,
-    "user|U=s"   => \$user,
-    "db=s"       => \$db,
-    "jobs|j=i"   => \$jobs,
-    "offset|o=i" => \$offset,
-    "pretend|p"  => \$pretend,
-    "verbose|v"  => \$verbose,
-    "progress"   => \$progress,
+    "host|h=s"  => \$host,
+    "user|U=s"  => \$user,
+    "db=s"      => \$db,
+    "jobs|j=i"  => \$jobs,
+    "pretend|p" => \$pretend,
+    "verbose|v" => \$verbose,
+    "date=s"    => \$date_string,
+    "progress"  => \$progress,
 );
 
 unless ( defined($db) ) {
     say "usage: $PROGNAME --host <host> --user <user> --db <db> -p\n";
     say "\thost|h => PostgreSQL host to connect to ( default: \'localhost\' )";
-    say "\tuser|U => PostgreSQL user to use for connection ( default: \'postgres\' )";
+    say "\tuser|U => PostgreSQL user to use for connection ( default:               \'postgres\' )";
     say "\tdb     => PostgreSQL database to connect to ( required )";
-    say "\tpretend|p => boolean, if set only print commands";
+    say "\tpretend|p => boolean, if set only prin commands";
     exit(1);
 }
 
@@ -47,9 +47,9 @@ my $tools = PostgresTools->new(
     db       => $db,
     pretend  => $pretend,
     verbose  => $verbose,
-    offset   => $offset,
     forks    => $jobs,
     progress => $progress,
+    exclude  => [ 'sessions', 'subsessions', 'events', 'clicks' ],
 );
 
-$tools->dump;
+$tools->restore;
