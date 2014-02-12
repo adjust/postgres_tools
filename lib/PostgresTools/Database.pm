@@ -35,7 +35,7 @@ sub partitions {
     my $self   = shift;
     my $result = [];
     for ( @{ $self->_make_request( $self->_get_partitions_sql ) } ) {
-        push( @$result, $_->[0] );
+        push( @$result, "partitions." . $_->[0] );
     }
     return $result;
 }

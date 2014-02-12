@@ -49,12 +49,45 @@ sub BUILD {
     $self->_create_excludes;
 }
 
+sub dump93 {
+    my $self = shift;
+    $self->_make_base;
+    my $items = [];
+    push( @$items, @{ $self->dbh->partitions } );
+    push( @$items, @{ $self->dbh->tables } );
+    push( @$items, @{ $self->dbh->sequences } );
+    my $cmd = "pg_dump";
+    $cmd .= " -U $self->{user}";
+    $cmd .= " -h $self->{host}";
+    $cmd .= " -c -F c";
+    $cmd .= " -f $self->{dump_dir}/$self->{db} $self->{db}";
+    $cmd .= " -v " if $self->verbose;
+    $cmd .= " -j $self->{forks}";
+
+    for (@$items) {
+        $cmd .= " -t $_ ";
+    }
+    system($cmd ) == 0 or die $!;
+}
+
 sub dump {
     my $self = shift;
     $self->_make_base;
     $self->_dump_partitions;
     $self->_dump_tables;
     $self->_dump_sequences;
+}
+
+sub restore93 {
+    my $self = shift;
+    my $cmd  = "pg_restore";
+    $cmd .= " -c -d $self->{db}";
+    $cmd .= " -h $self->{host}";
+    $cmd .= " -U $self->{user}";
+    $cmd .= " -j $self->{forks} ";
+    $cmd .= " -v " if $self->verbose;
+    $cmd .= "$self->{dump_dir}/$self->{db}";
+    system($cmd ) == 0 or die $cmd . " " . $!;
 }
 
 sub restore {
@@ -119,7 +152,7 @@ sub _dump_partitions {
         next if $self->excludes->{$part};
         $pm->start and next;
         if ( $date->older_than_from_string( $part, $self->offset ) ) {
-            $self->_make_dump( "partitions." . $part );
+            $self->_make_dump($part);
         }
         $pm->finish;
     }
