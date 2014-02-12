@@ -59,7 +59,7 @@ sub dump93 {
     my $cmd = "pg_dump";
     $cmd .= " -U $self->{user}";
     $cmd .= " -h $self->{host}";
-    $cmd .= " -c -F c";
+    $cmd .= " -c -F d";
     $cmd .= " -f $self->{dump_dir}/$self->{db} $self->{db}";
     $cmd .= " -v " if $self->verbose;
     $cmd .= " -j $self->{forks}";
