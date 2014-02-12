@@ -31,6 +31,20 @@
          }
       }
    },
+   "provides" : {
+      "PostgresTools" : {
+         "file" : "lib/PostgresTools.pm",
+         "version" : 0
+      },
+      "PostgresTools::Database" : {
+         "file" : "lib/PostgresTools/Database.pm",
+         "version" : 0
+      },
+      "PostgresTools::Date" : {
+         "file" : "lib/PostgresTools/Date.pm",
+         "version" : 0
+      }
+   },
    "release_status" : "stable",
    "resources" : {
       "license" : [
