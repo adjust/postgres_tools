@@ -20,6 +20,7 @@ my $verbose = 0;
 my $progress;
 my $jobs = 1;
 my $date_string;
+my $restore;
 
 GetOptions(
     "host|h=s"  => \$host,
@@ -30,14 +31,16 @@ GetOptions(
     "verbose|v" => \$verbose,
     "date=s"    => \$date_string,
     "progress"  => \$progress,
+    "restore=s" => \$restore,
 );
 
 unless ( defined($db) ) {
-    say "usage: $PROGNAME --host <host> --user <user> --db <db> -p\n";
+    say "usage: $PROGNAME --host <host> --user <user> --db <db> -p --restore <target>\n";
     say "\thost|h => PostgreSQL host to connect to ( default: \'localhost\' )";
     say "\tuser|U => PostgreSQL user to use for connection ( default: \'postgres\' )";
     say "\tdb     => PostgreSQL database to connect to ( required )";
     say "\tpretend|p => boolean, if set only print commands";
+    say "\trestore => define which db to restore ( default: value set in db )";
     exit(1);
 }
 
@@ -49,6 +52,7 @@ my $tools = PostgresTools->new(
     verbose  => $verbose,
     forks    => $jobs,
     progress => $progress,
+    restore  => $restore,
 );
 
 $tools->restore93;

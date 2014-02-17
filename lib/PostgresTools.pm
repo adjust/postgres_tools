@@ -30,6 +30,7 @@ has progress => ( is => 'rw' );
 has iter     => ( is => 'rw' );
 has bar      => ( is => 'rw' );
 has count    => ( is => 'rw' );
+has restore  => ( is => 'rw' );
 
 sub BUILD {
     my $self = shift;
@@ -43,9 +44,10 @@ sub BUILD {
     $self->base_dir('./base') unless $self->base_dir;
     $self->_set_date unless $self->date;
     $self->dbh($dbh);
-    $self->forks(1)   unless $self->forks;
-    $self->offset(1)  unless $self->offset;
-    $self->pretend(0) unless $self->pretend;
+    $self->forks(1)               unless $self->forks;
+    $self->offset(1)              unless $self->offset;
+    $self->pretend(0)             unless $self->pretend;
+    $self->restore( $self->{db} ) unless $self->restore;
     $self->_create_excludes;
 }
 
@@ -86,7 +88,7 @@ sub restore93 {
     $cmd .= " -U $self->{user}";
     $cmd .= " -j $self->{forks} ";
     $cmd .= " -v " if $self->verbose;
-    $cmd .= "$self->{dump_dir}/$self->{db}";
+    $cmd .= "$self->{dump_dir}/$self->{restore}";
     system($cmd ) == 0 or die $cmd . " " . $!;
 }
 
@@ -94,7 +96,7 @@ sub restore {
     my $self = shift;
     my $cmd  = "pg_restore -c -d $self->{db} -U $self->{user} ";
     $cmd .= " -v " if $self->verbose;
-    my @to_restore = glob "$self->{dump_dir}/*";
+    my @to_restore = glob "$self->{dump_dir}/$self->{restore}/*";
     say "restoring items..." if $self->progress;
     $self->_setup_progress( scalar @to_restore );
     my $pm = new Parallel::ForkManager( $self->forks );
