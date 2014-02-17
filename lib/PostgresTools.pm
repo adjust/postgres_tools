@@ -53,7 +53,7 @@ sub dump93 {
     my $self = shift;
     $self->_make_base;
     my $items = [];
-    push( @$items, @{ $self->dbh->partitions } );
+    push( @$items, @{ $self->_get_partitions } );
     push( @$items, @{ $self->dbh->tables } );
     push( @$items, @{ $self->dbh->sequences } );
     my $cmd = "pg_dump";
@@ -140,54 +140,50 @@ sub _finish_progress {
     $self->bar->update($max);
 }
 
+sub _get_partitions {
+    my $self     = shift;
+    my $parts    = $self->dbh->partitions;
+    my $date     = PostgresTools::Date->new;
+    my $filtered = [];
+    for my $part (@$parts) {
+        if ( $date->older_than_from_string( $part, $self->offset ) ) {
+            push( @$filtered, $part );
+        }
+    }
+    return $filtered;
+}
+
 sub _dump_partitions {
     my $self  = shift;
-    my $parts = $self->dbh->partitions;
+    my $parts = $self->_get_partitions;
     say "dumping partitions..." if $self->progress;
-    $self->_setup_progress( scalar @{$parts} );
-    my $date = PostgresTools::Date->new;
-    my $pm   = new Parallel::ForkManager( $self->forks );
-    $pm->run_on_finish( sub { $self->_update_progress } );
-    for my $part (@$parts) {
-        next if $self->excludes->{$part};
-        $pm->start and next;
-        if ( $date->older_than_from_string( $part, $self->offset ) ) {
-            $self->_make_dump($part);
-        }
-        $pm->finish;
-    }
-    $pm->wait_all_children;
-    $self->_finish_progress;
+    $self->_dump_tables($parts);
 }
 
 sub _dump_tables {
     my $self   = shift;
     my $tables = $self->dbh->tables;
     say "dumping tables..." if $self->progress;
-    $self->_setup_progress( scalar @{$tables} );
-    my $pm = new Parallel::ForkManager( $self->forks );
-    $pm->run_on_finish( sub { $self->_update_progress } );
-    for my $table (@$tables) {
-        next if $self->excludes->{$table};
-        $pm->start and next;
-        $self->_make_dump($table);
-        $pm->finish;
-    }
-    $pm->wait_all_children;
-    $self->_finish_progress;
+    $self->_dump_items($tables);
 }
 
 sub _dump_sequences {
     my $self = shift;
     my $seqs = $self->dbh->sequences;
     say "dumping sequences..." if $self->progress;
-    $self->_setup_progress( scalar @{$seqs} );
+    $self->_dump_items($seqs);
+}
+
+sub _dump_items {
+    my $self  = shift;
+    my $items = shift;
+    $self->_setup_progress( scalar @{$items} );
     my $pm = new Parallel::ForkManager( $self->forks );
     $pm->run_on_finish( sub { $self->_update_progress } );
-    for my $seq (@$seqs) {
-        next if $self->excludes->{$seq};
+    for my $item (@$items) {
+        next if $self->excludes->{$item};
         $pm->start and next;
-        $self->_make_dump($seq);
+        $self->_make_dump($item);
         $pm->finish;
     }
     $pm->wait_all_children;
