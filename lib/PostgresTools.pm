@@ -69,6 +69,10 @@ sub dump93 {
     for (@$items) {
         $cmd .= " -t $_ ";
     }
+    if ( $self->{pretend} ) {
+        say $cmd;
+        exit(0);
+    }
     system($cmd ) == 0 or die $!;
 }
 
@@ -89,6 +93,10 @@ sub restore93 {
     $cmd .= " -j $self->{forks} ";
     $cmd .= " -v " if $self->verbose;
     $cmd .= "$self->{dump_dir}/$self->{restore}";
+    if ( $self->{pretend} ) {
+        say $cmd;
+        exit(0);
+    }
     system($cmd ) == 0 or die $cmd . " " . $!;
 }
 
