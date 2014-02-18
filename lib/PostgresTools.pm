@@ -45,7 +45,7 @@ sub BUILD {
     $self->_set_date unless $self->date;
     $self->dbh($dbh);
     $self->forks(1)               unless $self->forks;
-    $self->offset(1)              unless $self->offset;
+    $self->offset(0)              unless $self->offset;
     $self->pretend(0)             unless $self->pretend;
     $self->restore( $self->{db} ) unless $self->restore;
     $self->_create_excludes;
@@ -148,7 +148,8 @@ sub _get_partitions {
     my $date     = PostgresTools::Date->new;
     my $filtered = [];
     for my $part (@$parts) {
-        if ( $date->older_than_from_string( $part, $self->offset ) ) {
+        push( @$filtered, $part ) and next if $self->offset == 0;
+        if ( $date->newer_than_from_string( $part, $self->offset ) ) {
             push( @$filtered, $part );
         }
     }
@@ -159,7 +160,7 @@ sub _dump_partitions {
     my $self  = shift;
     my $parts = $self->_get_partitions;
     say "dumping partitions..." if $self->progress;
-    $self->_dump_tables($parts);
+    $self->_dump_items($parts);
 }
 
 sub _dump_tables {
