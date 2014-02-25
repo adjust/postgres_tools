@@ -225,7 +225,7 @@ sub _make_dump {
     my $to_dump = shift;
     make_path("$self->{dump_dir}/$self->{db}");
     my $cmd = "pg_dump -U $self->{user} -h $self->{host} -c -F c -t $to_dump -f $self->{dump_dir}/$self->{db}/$to_dump $self->{db}";
-    $cmd .= $cmd . " -v " if $self->verbose;
+    $cmd .= " -v " if $self->verbose;
     say $cmd unless $self->progress;
     if ( !$self->pretend ) {
         eval {
