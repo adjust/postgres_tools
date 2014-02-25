@@ -21,6 +21,8 @@ my $progress;
 my $jobs = 1;
 my $date_string;
 my $restore;
+my $schema;
+my $date;
 
 GetOptions(
     "host|h=s"  => \$host,
@@ -31,7 +33,9 @@ GetOptions(
     "verbose|v" => \$verbose,
     "date=s"    => \$date_string,
     "progress"  => \$progress,
+    "schema|s"  => \$schema,
     "restore=s" => \$restore,
+    "date=s"    => \$date,
 );
 
 unless ( defined($db) ) {
@@ -53,6 +57,8 @@ my $tools = PostgresTools->new(
     forks    => $jobs,
     progress => $progress,
     restore  => $restore,
+    schema   => $schema,
+    date     => $date,
 );
 
-$tools->restore;
+$tools->restore_dump;

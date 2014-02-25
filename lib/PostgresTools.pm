@@ -9,6 +9,7 @@ use Parallel::ForkManager;
 use File::Path qw(make_path);
 use DateTime::Format::Strptime;
 use Term::ProgressBar;
+use autodie;
 
 use PostgresTools::Database;
 use PostgresTools::Date;
@@ -31,6 +32,7 @@ has iter     => ( is => 'rw' );
 has bar      => ( is => 'rw' );
 has count    => ( is => 'rw' );
 has restore  => ( is => 'rw' );
+has schema   => ( is => 'rw' );
 
 sub BUILD {
     my $self = shift;
@@ -42,7 +44,7 @@ sub BUILD {
         user => $self->{user},
     );
     $self->base_dir('./base') unless $self->base_dir;
-    $self->_set_date unless $self->date;
+    $self->_set_dump_dir;
     $self->dbh($dbh);
     $self->forks(1)               unless $self->forks;
     $self->offset(0)              unless $self->offset;
@@ -79,6 +81,7 @@ sub dump93 {
 sub dump {
     my $self = shift;
     $self->_make_base;
+    $self->_dump_schema;
     $self->_dump_partitions;
     $self->_dump_tables;
     $self->_dump_sequences;
@@ -100,9 +103,14 @@ sub restore93 {
     system($cmd ) == 0 or die $cmd . " " . $!;
 }
 
-sub restore {
+sub restore_dump {
     my $self = shift;
-    my $cmd  = "pg_restore -c -d $self->{db} -U $self->{user} ";
+    $self->_load_schema if $self->schema;
+    my $cmd = sprintf(
+        "pg_restore -c -d %s -U %s ",
+        $self->{db},
+        $self->{user},
+    );
     $cmd .= " -v " if $self->verbose;
     my @to_restore = glob "$self->{dump_dir}/$self->{restore}/*";
     say "restoring items..." if $self->progress;
@@ -114,7 +122,7 @@ sub restore {
         say $item;
         next if $self->excludes->{$item};
         $pm->start and next;
-        say $cmd . $item unless $self->progress;
+        say $cmd . $item if $self->verbose;
         if ( !$self->pretend ) {
             eval {
                 system( $cmd. $item ) == 0 or die $!;
@@ -162,6 +170,28 @@ sub _get_partitions {
         }
     }
     return $filtered;
+}
+
+sub _dump_schema {
+    my $self = shift;
+    my $cmd  = sprintf(
+        "pg_dump -U %s -s -f %s %s",
+        $self->{user},
+        "$self->{dump_dir}/schema/schema.sql",
+        $self->{db},
+    );
+    system($cmd) == 0 or die $!;
+}
+
+sub _load_schema {
+    my $self = shift;
+    my $cmd  = sprintf(
+        "psql -U %s -f %s %s",
+        $self->{user},
+        "$self->{dump_dir}/schema/schema.sql",
+        $self->{db},
+    );
+    system($cmd) == 0 or die $!;
 }
 
 sub _dump_partitions {
@@ -215,16 +245,30 @@ sub _set_date {
     $self->dump_dir( $self->{base_dir} . "/$self->{date}" );
 }
 
+sub _set_dump_dir {
+    my $self = shift;
+    $self->_set_date unless $self->date;
+    $self->dump_dir( $self->{base_dir} . "/$self->{date}" );
+}
+
 sub _make_base {
     my $self = shift;
     make_path( $self->{dump_dir} );
+    make_path( $self->{dump_dir} . "/schema" );
 }
 
 sub _make_dump {
     my $self    = shift;
     my $to_dump = shift;
     make_path("$self->{dump_dir}/$self->{db}");
-    my $cmd = "pg_dump -U $self->{user} -h $self->{host} -c -F c -t $to_dump -f $self->{dump_dir}/$self->{db}/$to_dump $self->{db}";
+    my $cmd = sprintf(
+        "pg_dump -U %s -h %s -c -F c -t %s -f %s %s",
+        $self->{user},
+        $self->{host},
+        $to_dump,
+        "$self->{dump_dir}/$self->{db}/$to_dump",
+        $self->{db},
+    );
     $cmd .= " -v " if $self->verbose;
     say $cmd unless $self->progress;
     if ( !$self->pretend ) {
