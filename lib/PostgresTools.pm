@@ -15,9 +15,13 @@ use PostgresTools::Database;
 use PostgresTools::Date;
 
 has user     => ( is => 'rw' );
+has user2    => ( is => 'rw' );
 has host     => ( is => 'rw' );
+has host2    => ( is => 'rw' );
 has db       => ( is => 'ro', required => 1 );
+has db2      => ( is => 'ro', required => 1 );
 has dbh      => ( is => 'rw' );
+has dbh2     => ( is => 'rw' );
 has date     => ( is => 'rw' );
 has base_dir => ( is => 'rw' );
 has dump_dir => ( is => 'rw' );
@@ -43,9 +47,9 @@ sub BUILD {
         host => $self->{host},
         user => $self->{user},
     );
+    $self->dbh($dbh);
     $self->base_dir('./base') unless $self->base_dir;
     $self->_set_dump_dir;
-    $self->dbh($dbh);
     $self->forks(1)               unless $self->forks;
     $self->offset(0)              unless $self->offset;
     $self->pretend(0)             unless $self->pretend;
@@ -57,7 +61,7 @@ sub dump93 {
     my $self = shift;
     $self->_make_base;
     my $items = [];
-    push( @$items, @{ $self->_get_partitions } );
+    push( @$items, @{ $self->_get_new_partitions } );
     push( @$items, @{ $self->dbh->tables } );
     push( @$items, @{ $self->dbh->sequences } );
     my $cmd = "pg_dump";
@@ -134,6 +138,24 @@ sub restore_dump {
     $self->_finish_progress;
 }
 
+sub diff {
+    my $self = shift;
+    my $dbh2 = PostgresTools::Database->new(
+        db   => $self->{db2},
+        host => $self->{host2},
+        user => $self->{user2},
+    );
+    $self->dbh2($dbh2);
+    my $items = [];
+    push( @$items, @{ $self->_get_old_partitions } );
+    push( @$items, @{ $self->dbh->tables } );
+    for my $item (@$items) {
+        my $val1 = $self->dbh->count($item);
+        my $val2 = $self->dbh2->count($item);
+        say "table $item differs count1: $val1 count2 $val2" if $val1 != $val2;
+    }
+}
+
 sub _setup_progress {
     my $self = shift;
     return unless $self->progress;
@@ -158,7 +180,7 @@ sub _finish_progress {
     $self->bar->update($max);
 }
 
-sub _get_partitions {
+sub _get_new_partitions {
     my $self     = shift;
     my $parts    = $self->dbh->partitions;
     my $date     = PostgresTools::Date->new;
@@ -166,6 +188,20 @@ sub _get_partitions {
     for my $part (@$parts) {
         push( @$filtered, $part ) and next if $self->offset == 0;
         if ( $date->newer_than_from_string( $part, $self->offset ) ) {
+            push( @$filtered, $part );
+        }
+    }
+    return $filtered;
+}
+
+sub _get_old_partitions {
+    my $self     = shift;
+    my $parts    = $self->dbh->partitions;
+    my $date     = PostgresTools::Date->new;
+    my $filtered = [];
+    for my $part (@$parts) {
+        push( @$filtered, $part ) and next if $self->offset == 0;
+        if ( $date->older_than_from_string( $part, $self->offset ) ) {
             push( @$filtered, $part );
         }
     }
@@ -196,7 +232,7 @@ sub _load_schema {
 
 sub _dump_partitions {
     my $self  = shift;
-    my $parts = $self->_get_partitions;
+    my $parts = $self->_get_new_partitions;
     say "dumping partitions..." if $self->progress;
     $self->_dump_items($parts);
 }

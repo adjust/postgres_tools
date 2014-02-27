@@ -40,6 +40,12 @@ sub partitions {
     return $result;
 }
 
+sub count {
+    my $self   = shift;
+    my $result = $self->_make_request( "SELECT count(*) from " . shift );
+    return $$result[0][0];
+}
+
 sub _get_tables_sql {
     return qq(
       SELECT table_name
