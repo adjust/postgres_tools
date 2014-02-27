@@ -148,7 +148,6 @@ sub diff {
     $self->dbh2($dbh2);
     my $items = [];
     push( @$items, @{ $self->_get_old_partitions } );
-    push( @$items, @{ $self->dbh->tables } );
     for my $item (@$items) {
         my $val1 = $self->dbh->count($item);
         my $val2 = $self->dbh2->count($item);
