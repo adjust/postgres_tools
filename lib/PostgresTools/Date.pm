@@ -20,6 +20,7 @@ sub date_from_string {
             day   => $day,
         );
     } else {
+        say $string;
         say "could not parse date, creating epoch date";
         return DateTime->from_epoch(
             epoch => 0,
