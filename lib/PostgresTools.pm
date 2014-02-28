@@ -19,7 +19,7 @@ has user2    => ( is => 'rw' );
 has host     => ( is => 'rw' );
 has host2    => ( is => 'rw' );
 has db       => ( is => 'ro', required => 1 );
-has db2      => ( is => 'ro', required => 1 );
+has db2      => ( is => 'ro' );
 has dbh      => ( is => 'rw' );
 has dbh2     => ( is => 'rw' );
 has date     => ( is => 'rw' );
