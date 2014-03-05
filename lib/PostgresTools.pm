@@ -149,11 +149,14 @@ sub diff {
     my $items = [];
     push( @$items, @{ $self->_get_old_partitions } );
     for my $item (@$items) {
-        my $val1 = $self->dbh->count($item);
-        my $val2 = $self->dbh2->count($item);
-        if ( $val1 != $val2 || $self->verbose ) {
-            say "table $item count1: $val1 count2 $val2";
-        }
+        eval {
+            my $val1 = $self->dbh->count($item);
+            my $val2 = $self->dbh2->count($item);
+            if ( $val1 != $val2 || $self->verbose ) {
+                say "table $item count1: $val1 count2 $val2";
+            }
+        };
+        say $@ if $@;
     }
 }
 

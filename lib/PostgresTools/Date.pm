@@ -19,18 +19,14 @@ sub date_from_string {
             month => $month,
             day   => $day,
         );
-    } else {
-        say $string;
-        say "could not parse date, creating epoch date";
-        return DateTime->from_epoch(
-            epoch => 0,
-        );
     }
+    return undef;
 }
 
 sub newer_than {
-    my $self     = shift;
-    my $date     = shift;
+    my $self = shift;
+    my $date = shift;
+    return if !defined($date);
     my $offset   = shift;
     my $duration = DateTime::Duration->new( days => $offset );
     my $old_date = DateTime->today()->subtract_duration($duration);
@@ -38,8 +34,9 @@ sub newer_than {
 }
 
 sub older_than {
-    my $self     = shift;
-    my $date     = shift;
+    my $self = shift;
+    my $date = shift;
+    return if !defined($date);
     my $offset   = shift;
     my $duration = DateTime::Duration->new( days => $offset );
     my $old_date = DateTime->today()->subtract_duration($duration);
