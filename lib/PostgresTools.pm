@@ -104,7 +104,7 @@ sub restore93 {
         say $cmd;
         exit(0);
     }
-    system($cmd ) == 0 or die $cmd . " " . $!;
+    system($cmd ) == 0 or say $cmd . " " . $!;
 }
 
 sub restore_dump {
@@ -190,6 +190,7 @@ sub _get_new_partitions {
     my $date     = PostgresTools::Date->new;
     my $filtered = [];
     for my $part (@$parts) {
+        next if $self->excludes->{ $date->string_date_from_string($part) };
         push( @$filtered, $part ) and next if $self->offset == 0;
         if ( $date->newer_than_from_string( $part, $self->offset ) ) {
             push( @$filtered, $part );
@@ -220,7 +221,11 @@ sub _dump_schema {
         "$self->{dump_dir}/schema/schema.sql",
         $self->{db},
     );
-    system($cmd) == 0 or die $!;
+    if ( $self->pretend ) {
+        say $cmd;
+    } else {
+        system($cmd) == 0 or die $!;
+    }
 }
 
 sub _load_schema {
