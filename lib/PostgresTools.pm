@@ -60,6 +60,7 @@ sub BUILD {
 sub dump93 {
     my $self = shift;
     $self->_make_base;
+    $self->_dump_schema;
     my $items = [];
     push( @$items, @{ $self->_get_new_partitions } );
     push( @$items, @{ $self->dbh->tables } );
@@ -232,11 +233,12 @@ sub _dump_schema {
 sub _load_schema {
     my $self = shift;
     my $cmd  = sprintf(
-        "pg_restore -U %s -f %s %s",
+        "pg_restore -U %s -d %s %s",
         $self->{user},
-        "$self->{dump_dir}/schema/schema.sql",
         $self->{db},
+        "$self->{dump_dir}/schema/schema",
     );
+    say $cmd;
     system($cmd) == 0 or die $!;
 }
 
