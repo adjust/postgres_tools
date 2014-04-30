@@ -93,7 +93,8 @@ sub dump {
 
 sub restore93 {
     my $self = shift;
-    my $cmd  = "pg_restore";
+    $self->_load_schema;
+    my $cmd = "pg_restore";
     $cmd .= " -c -d $self->{db}";
     $cmd .= " -h $self->{host}";
     $cmd .= " -U $self->{user}";
@@ -216,9 +217,9 @@ sub _get_old_partitions {
 sub _dump_schema {
     my $self = shift;
     my $cmd  = sprintf(
-        "pg_dump -U %s -s -f %s %s",
+        "pg_dump -U %s -s -F c -f %s %s",
         $self->{user},
-        "$self->{dump_dir}/schema/schema.sql",
+        "$self->{dump_dir}/schema/schema",
         $self->{db},
     );
     if ( $self->pretend ) {
@@ -231,7 +232,7 @@ sub _dump_schema {
 sub _load_schema {
     my $self = shift;
     my $cmd  = sprintf(
-        "psql -U %s -f %s %s",
+        "pg_restore -U %s -f %s %s",
         $self->{user},
         "$self->{dump_dir}/schema/schema.sql",
         $self->{db},
