@@ -319,7 +319,9 @@ sub _make_dump {
     );
     $cmd .= " -v " if $self->verbose;
     say $cmd unless $self->progress;
-    if ( !$self->pretend ) {
+    if ( $self->pretend ) {
+        say $cmd;
+    } else {
         eval {
             system($cmd) == 0 or die $!;
         };
