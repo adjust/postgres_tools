@@ -78,9 +78,9 @@ sub dump93 {
     }
     if ( $self->{pretend} ) {
         say $cmd;
-        exit(0);
+    } else {
+        system($cmd ) == 0 or die $!;
     }
-    system($cmd ) == 0 or die $!;
 }
 
 sub dump {
@@ -104,9 +104,9 @@ sub restore93 {
     $cmd .= "$self->{dump_dir}/$self->{restore}";
     if ( $self->{pretend} ) {
         say $cmd;
-        exit(0);
+    } else {
+        system($cmd ) == 0 or say $cmd . " " . $!;
     }
-    system($cmd ) == 0 or say $cmd . " " . $!;
 }
 
 sub restore_dump {
@@ -238,8 +238,11 @@ sub _load_schema {
         $self->{db},
         "$self->{dump_dir}/schema/schema",
     );
-    say $cmd;
-    system($cmd) == 0 or die $!;
+    if ( $self->pretend ) {
+        say $cmd;
+    } else {
+        system($cmd) == 0 or say $!;
+    }
 }
 
 sub _dump_partitions {
