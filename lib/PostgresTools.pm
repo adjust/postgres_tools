@@ -241,6 +241,7 @@ sub _load_schema {
         $self->{db},
         "$self->{dump_dir}/schema/schema",
     );
+    $cmd .= " > /dev/null 2>&1" if $self->quiet;
     if ( $self->pretend ) {
         say $cmd;
     } else {
