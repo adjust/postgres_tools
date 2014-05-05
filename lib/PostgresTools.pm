@@ -37,6 +37,7 @@ has bar      => ( is => 'rw' );
 has count    => ( is => 'rw' );
 has restore  => ( is => 'rw' );
 has schema   => ( is => 'rw' );
+has quiet    => ( is => 'rw' );
 
 sub BUILD {
     my $self = shift;
@@ -50,6 +51,7 @@ sub BUILD {
     $self->dbh($dbh);
     $self->base_dir('./base') unless $self->base_dir;
     $self->_set_dump_dir;
+    $self->quiet(0)               unless $self->quiet;
     $self->forks(1)               unless $self->forks;
     $self->offset(0)              unless $self->offset;
     $self->pretend(0)             unless $self->pretend;
@@ -102,6 +104,7 @@ sub restore93 {
     $cmd .= " -j $self->{forks} ";
     $cmd .= " -v " if $self->verbose;
     $cmd .= "$self->{dump_dir}/$self->{restore}";
+    $cmd .= " > /dev/null 2>&1" if $self->quiet;
     if ( $self->{pretend} ) {
         say $cmd;
     } else {
