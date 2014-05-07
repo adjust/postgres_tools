@@ -37,6 +37,7 @@ has bar      => ( is => 'rw' );
 has count    => ( is => 'rw' );
 has restore  => ( is => 'rw' );
 has schema   => ( is => 'rw' );
+has quiet    => ( is => 'rw' );
 
 sub BUILD {
     my $self = shift;
@@ -50,6 +51,7 @@ sub BUILD {
     $self->dbh($dbh);
     $self->base_dir('./base') unless $self->base_dir;
     $self->_set_dump_dir;
+    $self->quiet(0)               unless $self->quiet;
     $self->forks(1)               unless $self->forks;
     $self->offset(0)              unless $self->offset;
     $self->pretend(0)             unless $self->pretend;
@@ -60,6 +62,7 @@ sub BUILD {
 sub dump93 {
     my $self = shift;
     $self->_make_base;
+    $self->_dump_schema;
     my $items = [];
     push( @$items, @{ $self->_get_new_partitions } );
     push( @$items, @{ $self->dbh->tables } );
@@ -77,9 +80,9 @@ sub dump93 {
     }
     if ( $self->{pretend} ) {
         say $cmd;
-        exit(0);
+    } else {
+        system($cmd ) == 0 or die $!;
     }
-    system($cmd ) == 0 or die $!;
 }
 
 sub dump {
@@ -93,18 +96,20 @@ sub dump {
 
 sub restore93 {
     my $self = shift;
-    my $cmd  = "pg_restore";
+    $self->_load_schema;
+    my $cmd = "pg_restore";
     $cmd .= " -c -d $self->{db}";
     $cmd .= " -h $self->{host}";
     $cmd .= " -U $self->{user}";
     $cmd .= " -j $self->{forks} ";
     $cmd .= " -v " if $self->verbose;
     $cmd .= "$self->{dump_dir}/$self->{restore}";
+    $cmd .= " > /dev/null 2>&1" if $self->quiet;
     if ( $self->{pretend} ) {
         say $cmd;
-        exit(0);
+    } else {
+        system($cmd ) == 0 or say $cmd . " " . $!;
     }
-    system($cmd ) == 0 or die $cmd . " " . $!;
 }
 
 sub restore_dump {
@@ -190,6 +195,7 @@ sub _get_new_partitions {
     my $date     = PostgresTools::Date->new;
     my $filtered = [];
     for my $part (@$parts) {
+        next if $self->excludes->{ $date->string_date_from_string($part) };
         push( @$filtered, $part ) and next if $self->offset == 0;
         if ( $date->newer_than_from_string( $part, $self->offset ) ) {
             push( @$filtered, $part );
@@ -215,23 +221,32 @@ sub _get_old_partitions {
 sub _dump_schema {
     my $self = shift;
     my $cmd  = sprintf(
-        "pg_dump -U %s -s -f %s %s",
+        "pg_dump -U %s -s -F c -f %s %s",
         $self->{user},
-        "$self->{dump_dir}/schema/schema.sql",
+        "$self->{dump_dir}/schema/schema",
         $self->{db},
     );
-    system($cmd) == 0 or die $!;
+    if ( $self->pretend ) {
+        say $cmd;
+    } else {
+        system($cmd) == 0 or die $!;
+    }
 }
 
 sub _load_schema {
     my $self = shift;
     my $cmd  = sprintf(
-        "psql -U %s -f %s %s",
+        "pg_restore -U %s -d %s %s",
         $self->{user},
-        "$self->{dump_dir}/schema/schema.sql",
         $self->{db},
+        "$self->{dump_dir}/schema/schema",
     );
-    system($cmd) == 0 or die $!;
+    $cmd .= " > /dev/null 2>&1" if $self->quiet;
+    if ( $self->pretend ) {
+        say $cmd;
+    } else {
+        system($cmd) == 0 or say $!;
+    }
 }
 
 sub _dump_partitions {
@@ -311,7 +326,9 @@ sub _make_dump {
     );
     $cmd .= " -v " if $self->verbose;
     say $cmd unless $self->progress;
-    if ( !$self->pretend ) {
+    if ( $self->pretend ) {
+        say $cmd;
+    } else {
         eval {
             system($cmd) == 0 or die $!;
         };

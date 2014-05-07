@@ -23,6 +23,15 @@ sub date_from_string {
     return undef;
 }
 
+sub string_date_from_string {
+    my $self   = shift;
+    my $string = shift;
+    if ( $string =~ m/\d{4}_\d{2}_\d{2}/ ) {
+        return $&;
+    }
+    return '';
+}
+
 sub newer_than {
     my $self = shift;
     my $date = shift;
@@ -55,6 +64,14 @@ sub older_than_from_string {
     my $date   = $self->date_from_string(shift);
     my $offset = shift;
     return $self->older_than( $date, $offset );
+}
+
+sub offset2date {
+    my $self     = shift;
+    my $offset   = shift;
+    my $duration = DateTime::Duration->new( days => $offset );
+    return DateTime->today( formatter => DateTime::Format::Strptime->new( pattern => '%Y_%m_%d' )
+    )->subtract_duration($duration);
 }
 
 1;
