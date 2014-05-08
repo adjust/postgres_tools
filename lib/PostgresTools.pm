@@ -221,8 +221,9 @@ sub _get_old_partitions {
 sub _dump_schema {
     my $self = shift;
     my $cmd  = sprintf(
-        "pg_dump -U %s -s -F c -f %s %s",
+        "pg_dump -U %s -h %s -s -F c -f %s %s",
         $self->{user},
+        $self->{host},
         "$self->{dump_dir}/schema/schema",
         $self->{db},
     );
