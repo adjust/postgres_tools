@@ -7,7 +7,12 @@ use 5.012;
 use Moo;
 use DateTime;
 
-sub BUILD { }
+has now => ( is => 'rw' );
+
+sub BUILD {
+    my $self = shift;
+    $self->now( DateTime->today( formatter => DateTime::Format::Strptime->new( pattern => '%Y_%m_%d' ) ) ) unless $self->now;
+}
 
 sub date_from_string {
     my $self   = shift;
@@ -38,7 +43,7 @@ sub newer_than {
     return if !defined($date);
     my $offset   = shift;
     my $duration = DateTime::Duration->new( days => $offset );
-    my $old_date = DateTime->today()->subtract_duration($duration);
+    my $old_date = $self->now->subtract_duration($duration);
     return $date->subtract_datetime($old_date)->is_positive;
 }
 
@@ -48,7 +53,7 @@ sub older_than {
     return if !defined($date);
     my $offset   = shift;
     my $duration = DateTime::Duration->new( days => $offset );
-    my $old_date = DateTime->today()->subtract_duration($duration);
+    my $old_date = $self->now->subtract_duration($duration);
     return $date->subtract_datetime($old_date)->is_negative;
 }
 
@@ -70,8 +75,7 @@ sub offset2date {
     my $self     = shift;
     my $offset   = shift;
     my $duration = DateTime::Duration->new( days => $offset );
-    return DateTime->today( formatter => DateTime::Format::Strptime->new( pattern => '%Y_%m_%d' )
-    )->subtract_duration($duration);
+    return $self->now->subtract_duration($duration);
 }
 
 1;
