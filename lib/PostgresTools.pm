@@ -277,6 +277,7 @@ sub _dump_items {
     $self->_setup_progress( scalar @{$items} );
     my $pm = new Parallel::ForkManager( $self->forks );
     $pm->run_on_finish( sub { $self->_update_progress } );
+
     for my $item (@$items) {
         next if $self->excludes->{$item};
         $pm->start and next;

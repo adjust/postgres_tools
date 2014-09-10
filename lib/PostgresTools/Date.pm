@@ -6,12 +6,13 @@ use 5.012;
 
 use Moo;
 use DateTime;
+use Storable qw(dclone);
 
-has now => ( is => 'rw' );
+has _now_ => ( is => 'rw' );
 
 sub BUILD {
     my $self = shift;
-    $self->now( DateTime->today( formatter => DateTime::Format::Strptime->new( pattern => '%Y_%m_%d' ) ) ) unless $self->now;
+    $self->_now_( DateTime->today( formatter => DateTime::Format::Strptime->new( pattern => '%Y_%m_%d' ) ) ) unless $self->_now_;
 }
 
 sub date_from_string {
@@ -42,8 +43,9 @@ sub newer_than {
     my $date = shift;
     return if !defined($date);
     my $offset   = shift;
+    my $now      = dclone( $self->_now_ );
     my $duration = DateTime::Duration->new( days => $offset );
-    my $old_date = $self->now->subtract_duration($duration);
+    my $old_date = $now->subtract_duration($duration);
     return $date->subtract_datetime($old_date)->is_positive;
 }
 
@@ -52,8 +54,9 @@ sub older_than {
     my $date = shift;
     return if !defined($date);
     my $offset   = shift;
+    my $now      = dclone( $self->_now_ );
     my $duration = DateTime::Duration->new( days => $offset );
-    my $old_date = $self->now->subtract_duration($duration);
+    my $old_date = $now->subtract_duration($duration);
     return $date->subtract_datetime($old_date)->is_negative;
 }
 
@@ -75,7 +78,8 @@ sub offset2date {
     my $self     = shift;
     my $offset   = shift;
     my $duration = DateTime::Duration->new( days => $offset );
-    return $self->now->subtract_duration($duration);
+    my $now      = dclone( $self->_now_ );
+    return $now->subtract_duration($duration);
 }
 
 1;
