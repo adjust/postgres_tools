@@ -66,12 +66,12 @@ sub analyze {
     push( @$items, @{ $self->dbh->tables } );
     for my $item (@$items) {
         my $cmd = sprintf(
-            "psql -U %s -h %s -c \"ANALYZE $item;\" %s",
+            "psql -q -U %s -h %s -c \"ANALYZE $item;\" %s",
             $self->user,
             $self->host,
             $self->db,
         );
-        system($cmd) == 0 or die $!;
+        system($cmd) == 0 or warn $!;
     }
 }
 
