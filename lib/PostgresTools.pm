@@ -59,6 +59,22 @@ sub BUILD {
     $self->_create_excludes;
 }
 
+sub analyze {
+    my $self = shift;
+    my $items;
+    push( @$items, @{ $self->_get_new_partitions } );
+    push( @$items, @{ $self->dbh->tables } );
+    for my $item (@$items) {
+        my $cmd = sprintf(
+            "psql -U %s -h %s -c \"ANALYZE $item;\" %s",
+            $self->user,
+            $self->host,
+            $self->db,
+        );
+        system($cmd) == 0 or die $!;
+    }
+}
+
 sub dump93 {
     my $self = shift;
     $self->_make_base;
