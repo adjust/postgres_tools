@@ -4,7 +4,7 @@
       "Robert Abraham <roa@adeven.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.142690",
    "license" : [
       "mit"
    ],
@@ -31,10 +31,21 @@
          }
       }
    },
+   "provides" : {
+      "PostgresTools" : {
+         "file" : "lib/PostgresTools.pm"
+      },
+      "PostgresTools::Database" : {
+         "file" : "lib/PostgresTools/Database.pm"
+      },
+      "PostgresTools::Date" : {
+         "file" : "lib/PostgresTools/Date.pm"
+      }
+   },
    "release_status" : "stable",
    "resources" : {
       "license" : [
-         "http://opensource.org/licenses/mit-license.php"
+         "http://www.opensource.org/licenses/mit-license.php"
       ]
    },
    "version" : "0"
