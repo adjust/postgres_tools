@@ -51,6 +51,7 @@ sub _get_tables_sql {
       SELECT table_name
       FROM information_schema.tables
       WHERE table_schema = 'public'
+      AND table_type != 'FOREIGN TABLE'
       ORDER BY table_schema, table_name;
     );
 }
