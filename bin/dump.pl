@@ -19,7 +19,7 @@ my $pretend  = 0;
 my $verbose  = 0;
 my $progress = 0;
 my $jobs     = 1;
-my $offset   = 35;
+my $offset   = 0;
 
 GetOptions(
     "host|h=s"   => \$host,

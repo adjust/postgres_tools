@@ -66,13 +66,11 @@ sub _get_sequences_sql {
 
 sub _get_partitions_sql {
     return qq(
-    SELECT child.relname
-      AS child_schema
-    FROM pg_inherits
-      JOIN pg_class parent ON pg_inherits.inhparent = parent.oid
-      JOIN pg_class child             ON pg_inherits.inhrelid   = child.oid
-      JOIN pg_namespace nmsp_parent   ON nmsp_parent.oid  = parent.relnamespace
-      JOIN pg_namespace nmsp_child    ON nmsp_child.oid   = child.relnamespace;
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'partitions'
+      AND table_type != 'FOREIGN TABLE'
+      ORDER BY table_schema, table_name;
     );
 }
 
