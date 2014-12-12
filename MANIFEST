@@ -5,7 +5,6 @@ bin/restore.pl
 bin/restore93.pl
 Build.PL
 lib/PostgresTools.pm
-lib/PostgresTools/.Date.pm.swp
 lib/PostgresTools/Database.pm
 lib/PostgresTools/Date.pm
 LICENSE
