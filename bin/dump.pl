@@ -15,21 +15,27 @@ our $PROGNAME = basename($0);
 my $host = 'localhost';
 my $user = 'postgres';
 my $db;
+my $base_dir = './base';
+my $dst;
 my $pretend  = 0;
 my $verbose  = 0;
 my $progress = 0;
 my $jobs     = 1;
 my $offset   = 0;
+my $rsync    = 0;
 
 GetOptions(
     "host|h=s"   => \$host,
     "user|U=s"   => \$user,
     "db=s"       => \$db,
+    "base_dir=s" => \$base_dir,
+    "dst=s"      => \$dst,
     "jobs|j=i"   => \$jobs,
     "offset|o=i" => \$offset,
     "pretend|p"  => \$pretend,
     "verbose|v"  => \$verbose,
     "progress"   => \$progress,
+    "rsync"      => \$rsync,
 );
 
 unless ( defined($db) ) {
@@ -41,15 +47,23 @@ unless ( defined($db) ) {
     exit(1);
 }
 
+if ( $rsync && !defined($dst) ) {
+    say "you need to define <dst> if rsync is used";
+    exit(1);
+}
+
 my $tools = PostgresTools->new(
     host     => $host,
     user     => $user,
     db       => $db,
+    base_dir => $base_dir,
     pretend  => $pretend,
     verbose  => $verbose,
     offset   => $offset,
     forks    => $jobs,
     progress => $progress,
+    rsync    => $rsync,
+    dst      => $dst,
 );
 
 $tools->dump;

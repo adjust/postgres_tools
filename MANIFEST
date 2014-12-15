@@ -1,3 +1,4 @@
+bin/analyze.pl
 bin/diff.pl
 bin/dump.pl
 bin/dump93.pl
@@ -5,6 +6,7 @@ bin/restore.pl
 bin/restore93.pl
 Build.PL
 lib/PostgresTools.pm
+lib/PostgresTools/Archive.pm
 lib/PostgresTools/Database.pm
 lib/PostgresTools/Date.pm
 LICENSE

@@ -11,33 +11,37 @@ use DateTime::Format::Strptime;
 use Term::ProgressBar;
 use autodie;
 
+use PostgresTools::Archive;
 use PostgresTools::Database;
 use PostgresTools::Date;
 
-has user     => ( is => 'rw' );
-has user2    => ( is => 'rw' );
-has host     => ( is => 'rw' );
-has host2    => ( is => 'rw' );
-has db       => ( is => 'ro', required => 1 );
-has db2      => ( is => 'ro' );
-has dbh      => ( is => 'rw' );
-has dbh2     => ( is => 'rw' );
-has date     => ( is => 'rw' );
-has base_dir => ( is => 'rw' );
-has dump_dir => ( is => 'rw' );
-has forks    => ( is => 'rw' );
-has offset   => ( is => 'rw' );
-has exclude  => ( is => 'rw' );
-has excludes => ( is => 'rw' );
-has pretend  => ( is => 'rw' );
-has verbose  => ( is => 'rw' );
-has progress => ( is => 'rw' );
-has iter     => ( is => 'rw' );
-has bar      => ( is => 'rw' );
-has count    => ( is => 'rw' );
-has restore  => ( is => 'rw' );
-has schema   => ( is => 'rw' );
-has quiet    => ( is => 'rw' );
+has user      => ( is => 'rw' );
+has user2     => ( is => 'rw' );
+has host      => ( is => 'rw' );
+has host2     => ( is => 'rw' );
+has db        => ( is => 'ro', required => 1 );
+has db2       => ( is => 'ro' );
+has dbh       => ( is => 'rw' );
+has dbh2      => ( is => 'rw' );
+has date      => ( is => 'rw' );
+has base_dir  => ( is => 'rw' );
+has dump_dir  => ( is => 'rw' );
+has forks     => ( is => 'rw' );
+has offset    => ( is => 'rw' );
+has exclude   => ( is => 'rw' );
+has excludes  => ( is => 'rw' );
+has pretend   => ( is => 'rw' );
+has verbose   => ( is => 'rw' );
+has progress  => ( is => 'rw' );
+has iter      => ( is => 'rw' );
+has bar       => ( is => 'rw' );
+has count     => ( is => 'rw' );
+has restore   => ( is => 'rw' );
+has schema    => ( is => 'rw' );
+has quiet     => ( is => 'rw' );
+has rsync     => ( is => 'rw' );
+has dst       => ( is => 'rw' );
+has keep_days => ( is => 'rw' );
 
 sub BUILD {
     my $self = shift;
@@ -56,6 +60,8 @@ sub BUILD {
     $self->offset(0)              unless $self->offset;
     $self->pretend(0)             unless $self->pretend;
     $self->restore( $self->{db} ) unless $self->restore;
+    $self->keep_days(30)          unless $self->keep_days;
+    $self->rsync(0)               unless $self->rsync;
     $self->_create_excludes;
 }
 
@@ -73,6 +79,19 @@ sub analyze {
         );
         system($cmd) == 0 or warn $!;
     }
+}
+
+sub archive {
+    my $self     = shift;
+    my $src      = "$self->{dump_dir}/$self->{db}/";
+    my $dst      = $self->{dst};
+    my $archiver = PostgresTools::Archive->new(
+        dst       => $dst,
+        base_dir  => $self->{base_dir},
+        keep_days => $self->{keep_days},
+    );
+    $archiver->backup;
+    $archiver->clean;
 }
 
 sub dump93 {
@@ -108,6 +127,9 @@ sub dump {
     $self->_dump_partitions;
     $self->_dump_tables;
     $self->_dump_sequences;
+    if ( $self->rsync ) {
+        $self->archive;
+    }
 }
 
 sub restore93 {
@@ -312,9 +334,12 @@ sub _create_excludes {
 }
 
 sub _set_date {
-    my $self = shift;
+    my $self      = shift;
     my $formatter = DateTime::Format::Strptime->new( pattern => '%Y%m%d' );
-    $self->date( DateTime->now( formatter => $formatter ) );
+    my $date      = PostgresTools::Date->new(
+        formatter => $formatter,
+    );
+    $self->date( $date->offset2date(0) );
     $self->dump_dir( $self->{base_dir} . "/$self->{date}" );
 }
 
