@@ -28,16 +28,23 @@ sub backup {
 }
 
 sub clean {
-    my $self      = shift;
+    my $self = shift;
+
+    if ( $self->{keep_days} < 0 ) {
+        return;
+    }
+
     my $formatter = DateTime::Format::Strptime->new( pattern => '%Y%m%d' );
-    my $date      = PostgresTools::Date->new(
+    my $date = PostgresTools::Date->new(
         formatter => $formatter,
     );
     my $delete_date = $date->offset2date( $self->{keep_days} );
     my $to_clean    = "$self->{base_dir}/$delete_date";
+
     if ( -d $to_clean ) {
         rmtree $to_clean or warn $!;
     }
+
     my $rsync = File::Rsync->new( { archive => 1, delete => 1 } );
 
     $rsync->exec( { src => $self->{base_dir}, dest => $self->{dst} } ) or die $!;

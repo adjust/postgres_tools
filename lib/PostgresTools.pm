@@ -60,7 +60,7 @@ sub BUILD {
     $self->offset(0)              unless $self->offset;
     $self->pretend(0)             unless $self->pretend;
     $self->restore( $self->{db} ) unless $self->restore;
-    $self->keep_days(30)          unless $self->keep_days;
+    $self->keep_days(-1)          unless $self->keep_days;
     $self->rsync(0)               unless $self->rsync;
     $self->_create_excludes;
 }
