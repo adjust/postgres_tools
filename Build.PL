@@ -13,6 +13,7 @@ my $build = Module::Build->new(
         'DBD::Pg'                    => 0,
         'Getopt::Long'               => 0,
         'File::Path'                 => 0,
+        'File::Rsync'                => 0,
         'DateTime'                   => 0,
         'DateTime::Format::Strptime' => 0,
         'Parallel::ForkManager'      => 0,

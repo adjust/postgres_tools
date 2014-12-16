@@ -8,11 +8,13 @@ use Moo;
 use DateTime;
 use Storable qw(dclone);
 
-has _now_ => ( is => 'rw' );
+has _now_     => ( is => 'rw' );
+has formatter => ( is => 'rw' );
 
 sub BUILD {
     my $self = shift;
-    $self->_now_( DateTime->today( formatter => DateTime::Format::Strptime->new( pattern => '%Y_%m_%d' ) ) ) unless $self->_now_;
+    $self->formatter( DateTime::Format::Strptime->new( pattern => '%Y_%m_%d' ) ) unless $self->formatter;
+    $self->_now_( DateTime->today( formatter => $self->{formatter} ) ) unless $self->_now_;
 }
 
 sub date_from_string {
