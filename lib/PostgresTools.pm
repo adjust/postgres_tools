@@ -97,7 +97,6 @@ sub archive {
 sub dump93 {
     my $self = shift;
     $self->_make_base;
-    $self->_dump_schema;
     my $items = [];
     push( @$items, @{ $self->_get_new_partitions } );
     push( @$items, @{ $self->dbh->tables } );
@@ -123,7 +122,6 @@ sub dump93 {
 sub dump {
     my $self = shift;
     $self->_make_base;
-    $self->_dump_schema;
     $self->_dump_partitions;
     $self->_dump_tables;
     $self->_dump_sequences;
