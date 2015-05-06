@@ -15,33 +15,35 @@ use PostgresTools::Archive;
 use PostgresTools::Database;
 use PostgresTools::Date;
 
-has user      => ( is => 'rw' );
-has user2     => ( is => 'rw' );
-has host      => ( is => 'rw' );
-has host2     => ( is => 'rw' );
-has db        => ( is => 'ro', required => 1 );
-has db2       => ( is => 'ro' );
-has dbh       => ( is => 'rw' );
-has dbh2      => ( is => 'rw' );
-has date      => ( is => 'rw' );
-has base_dir  => ( is => 'rw' );
-has dump_dir  => ( is => 'rw' );
-has forks     => ( is => 'rw' );
-has offset    => ( is => 'rw' );
-has exclude   => ( is => 'rw' );
-has excludes  => ( is => 'rw' );
-has pretend   => ( is => 'rw' );
-has verbose   => ( is => 'rw' );
-has progress  => ( is => 'rw' );
-has iter      => ( is => 'rw' );
-has bar       => ( is => 'rw' );
-has count     => ( is => 'rw' );
-has restore   => ( is => 'rw' );
-has schema    => ( is => 'rw' );
-has quiet     => ( is => 'rw' );
-has rsync     => ( is => 'rw' );
-has dst       => ( is => 'rw' );
-has keep_days => ( is => 'rw' );
+has user               => ( is => 'rw' );
+has user2              => ( is => 'rw' );
+has host               => ( is => 'rw' );
+has host2              => ( is => 'rw' );
+has db                 => ( is => 'ro', required => 1 );
+has db2                => ( is => 'ro' );
+has dbh                => ( is => 'rw' );
+has dbh2               => ( is => 'rw' );
+has date               => ( is => 'rw' );
+has base_dir           => ( is => 'rw' );
+has dump_dir           => ( is => 'rw' );
+has forks              => ( is => 'rw' );
+has offset             => ( is => 'rw' );
+has exclude            => ( is => 'rw' );
+has exclude_partitions => ( is => 'rw' );
+has exclude_tables     => ( is => 'rw' );
+has excludes           => ( is => 'rw' );
+has pretend            => ( is => 'rw' );
+has verbose            => ( is => 'rw' );
+has progress           => ( is => 'rw' );
+has iter               => ( is => 'rw' );
+has bar                => ( is => 'rw' );
+has count              => ( is => 'rw' );
+has restore            => ( is => 'rw' );
+has schema             => ( is => 'rw' );
+has quiet              => ( is => 'rw' );
+has rsync              => ( is => 'rw' );
+has dst                => ( is => 'rw' );
+has keep_days          => ( is => 'rw' );
 
 sub BUILD {
     my $self = shift;
@@ -122,8 +124,8 @@ sub dump93 {
 sub dump {
     my $self = shift;
     $self->_make_base;
-    $self->_dump_partitions;
-    $self->_dump_tables;
+    $self->_dump_partitions unless $self->exclude_partitions;
+    $self->_dump_tables     unless $self->exclude_tables;
     $self->_dump_sequences;
     if ( $self->rsync ) {
         $self->archive;
@@ -160,7 +162,7 @@ sub restore_dump {
     my @to_restore = glob "$self->{dump_dir}/$self->{restore}/*";
     say "restoring items..." if $self->progress;
     $self->_setup_progress( scalar @to_restore );
-    my $pm = new Parallel::ForkManager( $self->forks );
+    my $pm = Parallel::ForkManager->new( $self->forks );
     $pm->run_on_finish( sub { $self->_update_progress } );
 
     for my $item (@to_restore) {
@@ -311,7 +313,7 @@ sub _dump_items {
     my $self  = shift;
     my $items = shift;
     $self->_setup_progress( scalar @{$items} );
-    my $pm = new Parallel::ForkManager( $self->forks );
+    my $pm = Parallel::ForkManager->new( $self->forks );
     $pm->run_on_finish( sub { $self->_update_progress } );
 
     for my $item (@$items) {

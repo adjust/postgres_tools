@@ -23,19 +23,23 @@ my $progress = 0;
 my $jobs     = 1;
 my $offset   = 0;
 my $rsync    = 0;
+my $exclude_partitions;
+my $exclude_tables;
 
 GetOptions(
-    "host|h=s"   => \$host,
-    "user|U=s"   => \$user,
-    "db=s"       => \$db,
-    "base_dir=s" => \$base_dir,
-    "dst=s"      => \$dst,
-    "jobs|j=i"   => \$jobs,
-    "offset|o=i" => \$offset,
-    "pretend|p"  => \$pretend,
-    "verbose|v"  => \$verbose,
-    "progress"   => \$progress,
-    "rsync"      => \$rsync,
+    "host|h=s"           => \$host,
+    "user|U=s"           => \$user,
+    "db=s"               => \$db,
+    "base_dir=s"         => \$base_dir,
+    "dst=s"              => \$dst,
+    "jobs|j=i"           => \$jobs,
+    "offset|o=i"         => \$offset,
+    "pretend|p"          => \$pretend,
+    "verbose|v"          => \$verbose,
+    "progress"           => \$progress,
+    "rsync"              => \$rsync,
+    "exclude_tables"     => \$exclude_tables,
+    "exclude_partitions" => \$exclude_partitions,
 );
 
 unless ( defined($db) ) {
@@ -53,17 +57,19 @@ if ( $rsync && !defined($dst) ) {
 }
 
 my $tools = PostgresTools->new(
-    host     => $host,
-    user     => $user,
-    db       => $db,
-    base_dir => $base_dir,
-    pretend  => $pretend,
-    verbose  => $verbose,
-    offset   => $offset,
-    forks    => $jobs,
-    progress => $progress,
-    rsync    => $rsync,
-    dst      => $dst,
+    host               => $host,
+    user               => $user,
+    db                 => $db,
+    base_dir           => $base_dir,
+    pretend            => $pretend,
+    verbose            => $verbose,
+    offset             => $offset,
+    forks              => $jobs,
+    progress           => $progress,
+    rsync              => $rsync,
+    dst                => $dst,
+    exclude_partitions => $exclude_partitions,
+    exclude_tables     => $exclude_tables,
 );
 
 $tools->dump;

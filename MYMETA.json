@@ -4,7 +4,7 @@
       "Robert Abraham <roa@adeven.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.142690",
+   "generated_by" : "Module::Build version 0.4205",
    "license" : [
       "mit"
    ],
@@ -16,7 +16,7 @@
    "prereqs" : {
       "build" : {
          "requires" : {
-            "Module::Build" : "0.38"
+            "Module::Build" : 0.38
          }
       },
       "runtime" : {
@@ -25,15 +25,20 @@
             "DateTime" : "0",
             "DateTime::Format::Strptime" : "0",
             "File::Path" : "0",
+            "File::Rsync" : "0",
             "Getopt::Long" : "0",
             "Moo" : "0",
-            "Parallel::ForkManager" : "0"
+            "Parallel::ForkManager" : "0",
+            "Term::ProgressBar" : "0"
          }
       }
    },
    "provides" : {
       "PostgresTools" : {
          "file" : "lib/PostgresTools.pm"
+      },
+      "PostgresTools::Archive" : {
+         "file" : "lib/PostgresTools/Archive.pm"
       },
       "PostgresTools::Database" : {
          "file" : "lib/PostgresTools/Database.pm"

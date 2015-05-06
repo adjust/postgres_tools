@@ -17,6 +17,7 @@ my $build = Module::Build->new(
         'DateTime'                   => 0,
         'DateTime::Format::Strptime' => 0,
         'Parallel::ForkManager'      => 0,
+        'Term::ProgressBar'          => 0,
     },
     script_files => [ 'bin/dump.pl', 'bin/dump93.pl', 'bin/restore.pl', 'bin/restore93.pl', 'bin/diff.pl', 'bin/analyze.pl' ],
 );
