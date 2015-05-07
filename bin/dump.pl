@@ -25,6 +25,7 @@ my $offset   = 0;
 my $rsync    = 0;
 my $exclude_partitions;
 my $exclude_tables;
+my $excludes;
 
 GetOptions(
     "host|h=s"           => \$host,
@@ -40,6 +41,7 @@ GetOptions(
     "rsync"              => \$rsync,
     "exclude_tables"     => \$exclude_tables,
     "exclude_partitions" => \$exclude_partitions,
+    "excludes=s"         => \$excludes,
 );
 
 unless ( defined($db) ) {
@@ -56,6 +58,8 @@ if ( $rsync && !defined($dst) ) {
     exit(1);
 }
 
+my @excludes_array = split ',', $excludes;
+
 my $tools = PostgresTools->new(
     host               => $host,
     user               => $user,
@@ -70,6 +74,7 @@ my $tools = PostgresTools->new(
     dst                => $dst,
     exclude_partitions => $exclude_partitions,
     exclude_tables     => $exclude_tables,
+    exclude            => \@excludes_array,
 );
 
 $tools->dump;
