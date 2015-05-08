@@ -28,6 +28,15 @@ sub date_from_string {
             day   => $day,
         );
     }
+    if ( $string =~ m/\d{4}_\d{2}/ ) {
+        my ( $year, $month ) = split( '_', $& );
+        return DateTime->new(
+            year  => $year,
+            month => $month,
+            day   => 1,
+        );
+    }
+
     return undef;
 }
 
