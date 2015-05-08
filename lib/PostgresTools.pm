@@ -44,6 +44,7 @@ has quiet              => ( is => 'rw' );
 has rsync              => ( is => 'rw' );
 has dst                => ( is => 'rw' );
 has keep_days          => ( is => 'rw' );
+has ignore_offset      => ( is => 'rw' );
 
 sub BUILD {
     my $self = shift;
@@ -233,6 +234,9 @@ sub _get_new_partitions {
     my $date     = PostgresTools::Date->new;
     my $filtered = [];
     for my $part (@$parts) {
+        if ( $self->ignore_offset ) {
+            push( @$filtered, $part ) if ( $part =~ $self->ignore_offset );
+        }
         next if $self->excludes->{ $date->string_date_from_string($part) };
         push( @$filtered, $part ) and next if $self->offset == 0;
         if ( $date->newer_than_from_string( $part, $self->offset ) ) {
