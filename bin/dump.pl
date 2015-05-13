@@ -60,7 +60,7 @@ if ( $rsync && !defined($dst) ) {
     exit(1);
 }
 
-my @excludes_array = split ',', $excludes;
+my @excludes_array = split ',', $excludes if $excludes;
 
 my $tools = PostgresTools->new(
     host               => $host,
