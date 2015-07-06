@@ -45,6 +45,7 @@ has rsync              => ( is => 'rw' );
 has dst                => ( is => 'rw' );
 has keep_days          => ( is => 'rw' );
 has ignore_offset      => ( is => 'rw' );
+has port               => ( is => 'rw' );
 
 sub BUILD {
     my $self = shift;
@@ -54,6 +55,7 @@ sub BUILD {
         db   => $self->{db},
         host => $self->{host},
         user => $self->{user},
+        port => $self->{port},
     );
     $self->dbh($dbh);
     $self->base_dir('./base') unless $self->base_dir;
@@ -65,7 +67,9 @@ sub BUILD {
     $self->restore( $self->{db} ) unless $self->restore;
     $self->keep_days(-1)          unless $self->keep_days;
     $self->rsync(0)               unless $self->rsync;
+    $self->port(5432)             unless $self->port;
     $self->_create_excludes;
+    say $self->port;
 }
 
 sub analyze {
@@ -74,12 +78,8 @@ sub analyze {
     push( @$items, @{ $self->_get_new_partitions } );
     push( @$items, @{ $self->dbh->tables } );
     for my $item (@$items) {
-        my $cmd = sprintf(
-            "psql -q -U %s -h %s -c \"ANALYZE $item;\" %s",
-            $self->user,
-            $self->host,
-            $self->db,
-        );
+        my $cmd = sprintf( "psql -p %s -q -U %s -h %s -c \"ANALYZE $item;\" %s",
+            $self->port, $self->user, $self->host, $self->db, );
         system($cmd) == 0 or warn $!;
     }
 }
@@ -105,6 +105,7 @@ sub dump93 {
     push( @$items, @{ $self->dbh->tables } );
     push( @$items, @{ $self->dbh->sequences } );
     my $cmd = "pg_dump";
+    $cmd .= " -p $self->{port}";
     $cmd .= " -U $self->{user}";
     $cmd .= " -h $self->{host}";
     $cmd .= " -c -F d";
@@ -117,7 +118,8 @@ sub dump93 {
     }
     if ( $self->{pretend} ) {
         say $cmd;
-    } else {
+    }
+    else {
         system($cmd ) == 0 or die $!;
     }
 }
@@ -137,6 +139,7 @@ sub restore93 {
     my $self = shift;
     $self->_load_schema;
     my $cmd = "pg_restore";
+    $cmd .= " -p $self->{port}";
     $cmd .= " -c -d $self->{db}";
     $cmd .= " -h $self->{host}";
     $cmd .= " -U $self->{user}";
@@ -146,7 +149,8 @@ sub restore93 {
     $cmd .= " > /dev/null 2>&1" if $self->quiet;
     if ( $self->{pretend} ) {
         say $cmd;
-    } else {
+    }
+    else {
         system($cmd ) == 0 or say $cmd . " " . $!;
     }
 }
@@ -154,11 +158,8 @@ sub restore93 {
 sub restore_dump {
     my $self = shift;
     $self->_load_schema if $self->schema;
-    my $cmd = sprintf(
-        "pg_restore -c -d %s -U %s ",
-        $self->{db},
-        $self->{user},
-    );
+    my $cmd = sprintf( "pg_restore -c -d %s -U %s -p %s",
+        $self->{db}, $self->{user}, $self->{port} );
     $cmd .= " -v " if $self->verbose;
     my @to_restore = glob "$self->{dump_dir}/$self->{restore}/*";
     say "restoring items..." if $self->progress;
@@ -172,9 +173,7 @@ sub restore_dump {
         $pm->start and next;
         say $cmd . $item if $self->verbose;
         if ( !$self->pretend ) {
-            eval {
-                system( $cmd. $item ) == 0 or die $!;
-            };
+            eval { system( $cmd. $item ) == 0 or die $!; };
         }
         $pm->finish;
     }
@@ -263,15 +262,15 @@ sub _get_old_partitions {
 sub _dump_schema {
     my $self = shift;
     my $cmd  = sprintf(
-        "pg_dump -U %s -h %s -s -F c -f %s %s",
-        $self->{user},
-        $self->{host},
+        "pg_dump -p %s -U %s -h %s -s -F c -f %s %s",
+        $self->{port}, $self->{user}, $self->{host},
         "$self->{dump_dir}/schema/schema",
         $self->{db},
     );
     if ( $self->pretend ) {
         say $cmd;
-    } else {
+    }
+    else {
         system($cmd) == 0 or die $!;
     }
 }
@@ -279,15 +278,15 @@ sub _dump_schema {
 sub _load_schema {
     my $self = shift;
     my $cmd  = sprintf(
-        "pg_restore -U %s -d %s %s",
-        $self->{user},
-        $self->{db},
+        "pg_restore -p %s-U %s -d %s %s",
+        $self->{port}, $self->{user}, $self->{db},
         "$self->{dump_dir}/schema/schema",
     );
     $cmd .= " > /dev/null 2>&1" if $self->quiet;
     if ( $self->pretend ) {
         say $cmd;
-    } else {
+    }
+    else {
         system($cmd) == 0 or say $!;
     }
 }
@@ -340,9 +339,7 @@ sub _create_excludes {
 sub _set_date {
     my $self      = shift;
     my $formatter = DateTime::Format::Strptime->new( pattern => '%Y%m%d' );
-    my $date      = PostgresTools::Date->new(
-        formatter => $formatter,
-    );
+    my $date      = PostgresTools::Date->new( formatter => $formatter, );
     $self->date( $date->offset2date(0) );
     $self->dump_dir( $self->{base_dir} . "/$self->{date}" );
 }
@@ -364,10 +361,8 @@ sub _make_dump {
     my $to_dump = shift;
     make_path("$self->{dump_dir}/$self->{db}");
     my $cmd = sprintf(
-        "pg_dump -U %s -h %s -c -F c -t %s -f %s %s",
-        $self->{user},
-        $self->{host},
-        $to_dump,
+        "pg_dump -p %s -U %s -h %s -c -F c -t %s -f %s %s",
+        $self->{port}, $self->{user}, $self->{host}, $to_dump,
         "$self->{dump_dir}/$self->{db}/$to_dump",
         $self->{db},
     );
@@ -375,10 +370,9 @@ sub _make_dump {
     say $cmd unless $self->progress;
     if ( $self->pretend ) {
         say $cmd;
-    } else {
-        eval {
-            system($cmd) == 0 or die $!;
-        };
+    }
+    else {
+        eval { system($cmd) == 0 or die $!; };
     }
 }
 

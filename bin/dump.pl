@@ -23,6 +23,7 @@ my $progress = 0;
 my $jobs     = 1;
 my $offset   = 0;
 my $rsync    = 0;
+my $port     = 5432;
 my $exclude_partitions;
 my $exclude_tables;
 my $excludes;
@@ -44,12 +45,14 @@ GetOptions(
     "exclude_partitions" => \$exclude_partitions,
     "excludes=s"         => \$excludes,
     "ignore_offset=s"    => \$ignore_offset,
+    "port=i"             => \$port,
 );
 
 unless ( defined($db) ) {
     say "usage: $PROGNAME --host <host> --user <user> --db <db> -p\n";
     say "\thost|h => PostgreSQL host to connect to ( default: \'localhost\' )";
-    say "\tuser|U => PostgreSQL user to use for connection ( default: \'postgres\' )";
+    say
+"\tuser|U => PostgreSQL user to use for connection ( default: \'postgres\' )";
     say "\tdb     => PostgreSQL database to connect to ( required )";
     say "\tpretend|p => boolean, if set only print commands";
     exit(1);
@@ -78,6 +81,7 @@ my $tools = PostgresTools->new(
     exclude_tables     => $exclude_tables,
     exclude            => \@excludes_array,
     ignore_offset      => $ignore_offset,
+    port               => $port,
 );
 
 $tools->dump;

@@ -10,6 +10,7 @@ use DBD::Pg;
 has db   => ( is => 'rw' );
 has host => ( is => 'rw' );
 has user => ( is => 'rw' );
+has port => ( is => 'rw' );
 
 sub BUILD { }
 
@@ -77,9 +78,8 @@ sub _get_partitions_sql {
 sub _make_request {
     my $self = shift;
     my $dbh  = DBI->connect(
-        "dbi:Pg:dbname=$self->{'db'};host=$self->{'host'}",
-        $self->{'user'},
-        '',
+        "dbi:Pg:dbname=$self->{'db'};host=$self->{'host'};port=$self->{'port'}",
+        $self->{'user'}, '',
     );
     my $resp = $dbh->selectall_arrayref(shift);
     $dbh->disconnect;
