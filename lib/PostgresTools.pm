@@ -46,6 +46,7 @@ has dst                => ( is => 'rw' );
 has keep_days          => ( is => 'rw' );
 has ignore_offset      => ( is => 'rw' );
 has port               => ( is => 'rw' );
+has textdump           => ( is => 'rw' );
 
 sub BUILD {
     my $self = shift;
@@ -360,12 +361,22 @@ sub _make_dump {
     my $self    = shift;
     my $to_dump = shift;
     make_path("$self->{dump_dir}/$self->{db}");
-    my $cmd = sprintf(
-        "pg_dump -p %s -U %s -h %s -c -F c -t %s -f %s %s",
-        $self->{port}, $self->{user}, $self->{host}, $to_dump,
-        "$self->{dump_dir}/$self->{db}/$to_dump",
-        $self->{db},
-    );
+    my $cmd;
+    if ( $self->textdump ) {
+        $cmd = sprintf(
+            "pg_dump -p %s -U %s -h %s -t %s -f %s %s",
+            $self->{port}, $self->{user}, $self->{host}, $to_dump,
+            "$self->{dump_dir}/$self->{db}/$to_dump",
+            $self->{db},
+        );
+    } else {
+        $cmd = sprintf(
+            "pg_dump -p %s -U %s -h %s -F c -t %s -f %s %s",
+            $self->{port}, $self->{user}, $self->{host}, $to_dump,
+            "$self->{dump_dir}/$self->{db}/$to_dump",
+            $self->{db},
+        );
+    }
     $cmd .= " -v " if $self->verbose;
     say $cmd unless $self->progress;
     if ( $self->pretend ) {

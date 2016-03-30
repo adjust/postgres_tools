@@ -28,6 +28,7 @@ my $exclude_partitions;
 my $exclude_tables;
 my $excludes;
 my $ignore_offset;
+my $textdump;
 
 GetOptions(
     "host|h=s"           => \$host,
@@ -46,13 +47,14 @@ GetOptions(
     "excludes=s"         => \$excludes,
     "ignore_offset=s"    => \$ignore_offset,
     "port=i"             => \$port,
+    "textdump"           => \$textdump,
 );
 
 unless ( defined($db) ) {
     say "usage: $PROGNAME --host <host> --user <user> --db <db> -p\n";
     say "\thost|h => PostgreSQL host to connect to ( default: \'localhost\' )";
     say
-"\tuser|U => PostgreSQL user to use for connection ( default: \'postgres\' )";
+      "\tuser|U => PostgreSQL user to use for connection ( default: \'postgres\' )";
     say "\tdb     => PostgreSQL database to connect to ( required )";
     say "\tpretend|p => boolean, if set only print commands";
     exit(1);
@@ -82,6 +84,7 @@ my $tools = PostgresTools->new(
     exclude            => \@excludes_array,
     ignore_offset      => $ignore_offset,
     port               => $port,
+    textdump           => $textdump,
 );
 
 $tools->dump;
