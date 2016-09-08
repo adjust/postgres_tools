@@ -18,7 +18,9 @@ sub tables {
     my $self   = shift;
     my $result = [];
     for ( @{ $self->_make_request( $self->_get_tables_sql ) } ) {
-        push( @$result, $_->[0] );
+        my $table     = $_->[0];
+        my $namespace = $_->[1];
+        push( @$result, "$namespace.$table" );
     }
     return $result;
 }
@@ -27,7 +29,9 @@ sub sequences {
     my $self   = shift;
     my $result = [];
     for ( @{ $self->_make_request( $self->_get_sequences_sql ) } ) {
-        push( @$result, $_->[0] );
+        my $sequence  = $_->[0];
+        my $namespace = $_->[1];
+        push( @$result, "$namespace.$sequence" );
     }
     return $result;
 }
@@ -49,9 +53,11 @@ sub count {
 
 sub _get_tables_sql {
     return qq(
-      SELECT table_name
+      SELECT table_name, table_schema
       FROM information_schema.tables
-      WHERE table_schema = 'public'
+      WHERE table_schema != 'partitions'
+      AND table_schema != 'information_schema'
+      AND table_schema != 'pg_catalog'
       AND table_type != 'FOREIGN TABLE'
       ORDER BY table_schema, table_name;
     );
@@ -59,9 +65,8 @@ sub _get_tables_sql {
 
 sub _get_sequences_sql {
     return qq(
-      SELECT c.relname
-      FROM pg_class c
-      WHERE c.relkind = 'S';
+      SELECT sequence_name, sequence_schema
+      FROM information_schema.sequences;
     );
 }
 
