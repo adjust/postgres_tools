@@ -7,6 +7,7 @@ use 5.012;
 use Moo;
 use DateTime;
 use Storable qw(dclone);
+$Storable::forgive_me = 42;
 
 has _now_     => ( is => 'rw' );
 has formatter => ( is => 'rw' );
