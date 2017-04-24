@@ -54,7 +54,9 @@ sub newer_than {
     my $self = shift;
     my $date = shift;
     return if !defined($date);
-    my $offset   = shift;
+    my $offset = shift;
+    local *STDERR;
+    open( STDERR, '>>', '/dev/null' );
     my $now      = dclone( $self->_now_ );
     my $duration = DateTime::Duration->new( days => $offset );
     my $old_date = $now->subtract_duration($duration);
@@ -65,8 +67,11 @@ sub older_than {
     my $self = shift;
     my $date = shift;
     return if !defined($date);
-    my $offset   = shift;
-    my $now      = dclone( $self->_now_ );
+    my $offset = shift;
+    open( my $STDOLD, '>&', STDERR );
+    open( STDERR,     '>>', '/dev/null' );
+    my $now = dclone( $self->_now_ );
+    open( STDOUT, '>&', $STDOLD );
     my $duration = DateTime::Duration->new( days => $offset );
     my $old_date = $now->subtract_duration($duration);
     return $date->subtract_datetime($old_date)->is_negative;
@@ -90,7 +95,10 @@ sub offset2date {
     my $self     = shift;
     my $offset   = shift;
     my $duration = DateTime::Duration->new( days => $offset );
-    my $now      = dclone( $self->_now_ );
+    open( my $STDOLD, '>&', STDERR );
+    open( STDERR,     '>>', '/dev/null' );
+    my $now = dclone( $self->_now_ );
+    open( STDOUT, '>&', $STDOLD );
     return $now->subtract_duration($duration);
 }
 

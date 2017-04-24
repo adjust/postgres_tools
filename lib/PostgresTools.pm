@@ -70,7 +70,6 @@ sub BUILD {
     $self->rsync(0)               unless $self->rsync;
     $self->port(5432)             unless $self->port;
     $self->_create_excludes;
-    say $self->port;
 }
 
 sub analyze {
