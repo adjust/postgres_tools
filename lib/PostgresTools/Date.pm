@@ -71,7 +71,7 @@ sub older_than {
     open( my $STDOLD, '>&', STDERR );
     open( STDERR,     '>>', '/dev/null' );
     my $now = dclone( $self->_now_ );
-    open( STDOUT, '>&', $STDOLD );
+    open( STDERR, '>&', $STDOLD );
     my $duration = DateTime::Duration->new( days => $offset );
     my $old_date = $now->subtract_duration($duration);
     return $date->subtract_datetime($old_date)->is_negative;
@@ -98,7 +98,7 @@ sub offset2date {
     open( my $STDOLD, '>&', STDERR );
     open( STDERR,     '>>', '/dev/null' );
     my $now = dclone( $self->_now_ );
-    open( STDOUT, '>&', $STDOLD );
+    open( STDERR, '>&', $STDOLD );
     return $now->subtract_duration($duration);
 }
 
