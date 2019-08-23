@@ -55,9 +55,7 @@ sub _get_tables_sql {
     return qq(
       SELECT table_name, table_schema
       FROM information_schema.tables
-      WHERE table_schema != 'partitions'
-      AND table_schema != 'information_schema'
-      AND table_schema != 'pg_catalog'
+      WHERE table_schema = 'public'
       AND table_type != 'FOREIGN TABLE'
       ORDER BY table_schema, table_name;
     );
