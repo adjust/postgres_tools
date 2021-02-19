@@ -15,7 +15,7 @@ has formatter => ( is => 'rw' );
 sub BUILD {
     my $self = shift;
     $self->formatter( DateTime::Format::Strptime->new( pattern => '%Y_%m_%d' ) ) unless $self->formatter;
-    $self->_now_( DateTime->today( formatter => $self->{formatter} ) ) unless $self->_now_;
+    $self->_now_( DateTime->now( formatter => $self->{formatter} ) ) unless $self->_now_;
 }
 
 sub date_from_string {

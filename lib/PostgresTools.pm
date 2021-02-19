@@ -47,6 +47,7 @@ has keep_days          => ( is => 'rw' );
 has ignore_offset      => ( is => 'rw' );
 has port               => ( is => 'rw' );
 has textdump           => ( is => 'rw' );
+has time_suffix       => ( is => 'rw' );
 
 sub BUILD {
     my $self = shift;
@@ -69,6 +70,7 @@ sub BUILD {
     $self->keep_days(-1)          unless $self->keep_days;
     $self->rsync(0)               unless $self->rsync;
     $self->port(5432)             unless $self->port;
+    $self->time_suffix(0)         unless $self->time_suffix;
     $self->_create_excludes;
 }
 
@@ -338,7 +340,9 @@ sub _create_excludes {
 
 sub _set_date {
     my $self      = shift;
-    my $formatter = DateTime::Format::Strptime->new( pattern => '%Y%m%d' );
+    my $pattern = '%Y%m%d';
+    $pattern = '%Y%m%d_%H:%M' if $self->time_suffix;
+    my $formatter = DateTime::Format::Strptime->new( pattern => $pattern );
     my $date      = PostgresTools::Date->new( formatter => $formatter, );
     $self->date( $date->offset2date(0) );
     $self->dump_dir( $self->{base_dir} . "/$self->{date}" );

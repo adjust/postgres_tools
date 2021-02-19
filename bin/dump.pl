@@ -29,6 +29,7 @@ my $exclude_tables;
 my $excludes;
 my $ignore_offset;
 my $textdump;
+my $time_suffixi = 0;
 
 GetOptions(
     "host|h=s"           => \$host,
@@ -48,6 +49,7 @@ GetOptions(
     "ignore_offset=s"    => \$ignore_offset,
     "port=i"             => \$port,
     "textdump"           => \$textdump,
+    "time_suffix=i"      => \$time_suffix,
 );
 
 unless ( defined($db) ) {
@@ -85,6 +87,7 @@ my $tools = PostgresTools->new(
     ignore_offset      => $ignore_offset,
     port               => $port,
     textdump           => $textdump,
+    time_suffix        => $time_suffix,
 );
 
 $tools->dump;
