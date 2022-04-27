@@ -6,7 +6,6 @@ use 5.012;
 
 use Moo;
 use File::Path;
-use File::Rsync;
 use PostgresTools::Date;
 
 has keep_days => ( is => 'rw' );
@@ -22,9 +21,9 @@ sub BUILD {
 
 sub backup {
     my $self = shift;
-    my $rsync = File::Rsync->new( { archive => 1 } );
 
-    $rsync->exec( { src => $self->{base_dir}, dest => $self->{dst} } ) or die $!;
+    system("rsync --archive $self->{base_dir} $self->{dst}") == 0
+        or die "$?, $!";
 }
 
 sub clean {
@@ -45,9 +44,8 @@ sub clean {
         rmtree $to_clean or warn $!;
     }
 
-    my $rsync = File::Rsync->new( { archive => 1, delete => 1 } );
-
-    $rsync->exec( { src => $self->{base_dir}, dest => $self->{dst} } ) or die $!;
+    system("rsync --archive --delete $self->{base_dir} $self->{dst}") == 0
+        or die "$?, $!";
 }
 
 1;
