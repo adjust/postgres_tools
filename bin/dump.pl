@@ -29,7 +29,7 @@ my $exclude_tables;
 my $excludes;
 my $ignore_offset;
 my $textdump;
-my $time_suffixi = 0;
+my $time_suffix = 0;
 
 GetOptions(
     "host|h=s"           => \$host,
